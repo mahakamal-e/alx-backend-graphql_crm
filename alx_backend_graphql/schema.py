@@ -1,10 +1,20 @@
 import graphene
+from crm.schema import Query as CRMQuery, Mutation as CRMMutation
 
-
-class Query(graphene.ObjectType):
+# تعريف استعلام hello بسيط
+class HelloQuery(graphene.ObjectType):
     hello = graphene.String(description="Returns a greeting message")
 
     def resolve_hello(self, info):
         return "Hello, GraphQL!"
 
-schema = graphene.Schema(query=Query)
+
+class Query(HelloQuery, CRMQuery, graphene.ObjectType):
+    pass
+
+
+class Mutation(CRMMutation, graphene.ObjectType):
+    pass
+
+
+schema = graphene.Schema(query=Query, mutation=Mutation)
