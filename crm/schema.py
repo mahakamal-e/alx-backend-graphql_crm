@@ -3,21 +3,27 @@ from graphene_django import DjangoObjectType
 from .models import Customer, Product, Order
 from django.core.exceptions import ValidationError
 from django.db import transaction
+from graphene_django.filter import DjangoFilterConnectionField
+from .filters import CustomerFilter, ProductFilter, OrderFilter
 
-# -------------------
-# Object Types
-# -------------------
+
 class CustomerType(DjangoObjectType):
     class Meta:
         model = Customer
+        filterset_class = CustomerFilter
+        interfaces = (graphene.relay.Node, )
 
 class ProductType(DjangoObjectType):
     class Meta:
         model = Product
+        filterset_class = ProductFilter
+        interfaces = (graphene.relay.Node, )
 
 class OrderType(DjangoObjectType):
     class Meta:
         model = Order
+        filterset_class = OrderFilter
+        interfaces = (graphene.relay.Node, )
 
 # -------------------
 # Input Types
@@ -125,8 +131,13 @@ class Mutation(graphene.ObjectType):
 # -------------------
 # Root Query
 # -------------------
+
 class Query(graphene.ObjectType):
     hello = graphene.String(description="Returns a greeting message")
+
+    all_customers = DjangoFilterConnectionField(CustomerType)
+    all_products = DjangoFilterConnectionField(ProductType)
+    all_orders = DjangoFilterConnectionField(OrderType)
 
     def resolve_hello(self, info):
         return "Hello, GraphQL!"
