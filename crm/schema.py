@@ -4,7 +4,9 @@ from .models import Customer, Product, Order
 from django.core.exceptions import ValidationError
 from django.db import transaction
 
+# -------------------
 # Object Types
+# -------------------
 class CustomerType(DjangoObjectType):
     class Meta:
         model = Customer
@@ -17,13 +19,17 @@ class OrderType(DjangoObjectType):
     class Meta:
         model = Order
 
+# -------------------
 # Input Types
+# -------------------
 class CreateCustomerInput(graphene.InputObjectType):
     name = graphene.String(required=True)
     email = graphene.String(required=True)
     phone = graphene.String()
 
+# -------------------
 # Mutations
+# -------------------
 class CreateCustomer(graphene.Mutation):
     class Arguments:
         name = graphene.String(required=True)
@@ -105,12 +111,22 @@ class CreateOrder(graphene.Mutation):
             total += p.price
         order.total_amount = total
         order.save()
-
         return CreateOrder(order=order)
 
-# Mutation Class
+# -------------------
+# Root Mutation
+# -------------------
 class Mutation(graphene.ObjectType):
     create_customer = CreateCustomer.Field()
     bulk_create_customers = BulkCreateCustomers.Field()
     create_product = CreateProduct.Field()
     create_order = CreateOrder.Field()
+
+# -------------------
+# Root Query
+# -------------------
+class Query(graphene.ObjectType):
+    hello = graphene.String(description="Returns a greeting message")
+
+    def resolve_hello(self, info):
+        return "Hello, GraphQL!"
