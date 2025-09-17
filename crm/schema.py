@@ -5,6 +5,8 @@ from django.core.exceptions import ValidationError
 from django.db import transaction
 from graphene_django.filter import DjangoFilterConnectionField
 from .filters import CustomerFilter, ProductFilter, OrderFilter
+import graphene
+from crm.models import Product
 
 
 class CustomerType(DjangoObjectType):
@@ -141,3 +143,30 @@ class Query(graphene.ObjectType):
 
     def resolve_hello(self, info):
         return "Hello, GraphQL!"
+
+
+class ProductType(graphene.ObjectType):
+    name = graphene.String()
+    stock = graphene.Int()
+
+class UpdateLowStockProducts(graphene.Mutation):
+    updated_products = graphene.List(ProductType)
+    message = graphene.String()
+
+    def mutate(self, info):
+        # Query products with stock < 10
+        low_stock_products = Product.objects.filter(stock__lt=10)
+        updated_products_list = []
+
+        for product in low_stock_products:
+            product.stock += 10  # restock
+            product.save()
+            updated_products_list.append(ProductType(name=product.name, stock=product.stock))
+
+        return UpdateLowStockProducts(
+            updated_products=updated_products_list,
+            message=f"{len(updated_products_list)} products restocked successfully"
+        )
+
+class Mutation(graphene.ObjectType):
+    update_low_stock_products = UpdateLowStockProducts.Field()
